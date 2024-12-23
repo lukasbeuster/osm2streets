@@ -585,7 +585,7 @@ dependencies = [
 [[package]]
 name = "geom"
 version = "0.1.0"
-source = "git+https://github.com/a-b-street/geom#9bb49fce2be2c527405a821ffd22c63869416976"
+source = "git+https://github.com/lukasbeuster/geom#2d6d756d7f81a69c0fff113e5a9af0d7cb466a25"
 dependencies = [
  "anyhow",
  "earcutr",
