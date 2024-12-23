@@ -574,19 +574,55 @@ impl RoadEdge {
     pub fn calculate(sorted_roads: Vec<&Road>, i: IntersectionID) -> Vec<Self> {
         let mut edges = Vec::new();
         for road in sorted_roads {
+            let left_pl = road.center_line.must_shift_left(road.half_width());
+            let right_pl = road.center_line.must_shift_right(road.half_width());
+        
+            // Validate the PolyLines
+            if left_pl.is_placeholder() || right_pl.is_placeholder() {
+                eprintln!(
+                    "Skipping road {}: One of the polylines is a placeholder",
+                    road.id
+                );
+                continue;
+            }
+            
+            // Safely handle lane_specs_ltr.first() and lane_specs_ltr.last()
+            let left_lane = match road.lane_specs_ltr.first() {
+                Some(lane) => lane.clone(),
+                None => {
+                    eprintln!(
+                        "Skipping road {}: No lanes found in lane_specs_ltr for the left side",
+                        road.id
+                    );
+                    continue;
+                }
+            };
+
+            let right_lane = match road.lane_specs_ltr.last() {
+                Some(lane) => lane.clone(),
+                None => {
+                    eprintln!(
+                        "Skipping road {}: No lanes found in lane_specs_ltr for the right side",
+                        road.id
+                    );
+                    continue;
+                }
+            };
+        
             let mut left = RoadEdge {
                 road: road.id,
-                pl: road.center_line.must_shift_left(road.half_width()),
-                lane: road.lane_specs_ltr[0].clone(),
+                pl: left_pl,
+                lane: road.lane_specs_ltr.first().unwrap().clone(),
                 _side: DrivingSide::Left,
             };
+        
             let mut right = RoadEdge {
                 road: road.id,
-                pl: road.center_line.must_shift_right(road.half_width()),
+                pl: right_pl,
                 lane: road.lane_specs_ltr.last().unwrap().clone(),
                 _side: DrivingSide::Right,
             };
-            // TODO Think about loop roads (road.src_i == road.dst_i == i) carefully
+        
             if road.dst_i == i {
                 edges.push(right);
                 edges.push(left);
